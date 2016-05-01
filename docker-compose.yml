@@ -6,12 +6,10 @@ services:
     container_name: head
     build: ./dockermaze2-head
     environment:
-     - DM2_ENDPOINT=backend.public.schibsted.io
+    - DM2_ENDPOINT=backend.public.schibsted.io
     ports:
-      - "7777:7777"
-      - "80:80"
-    networks:
-      - int
+    - "7777:7777"
+    - "80:80"
     env_file:
     - token.env
 
@@ -19,50 +17,34 @@ services:
     container_name: legs
     build: ./dockermaze2-legs-game
     links:
-      - head
-    networks:
-      - int
+    - head
 
   arms:
     container_name: arms
     build: ./dockermaze2-arms-game
     depends_on:
-      - head
-    networks:
-      - int
+    - head
 
   weapon:
     container_name: weapon
     build: ./dockermaze2-weapon-game
     depends_on:
-      - head
-    networks:
-      - int
+    - head
 
   stockfish:
     container_name: stockfish
     build: ./dockermaze2-stockfish
     ports:
-      - "9999:9999"
-    networks:
-      - int
+    - "9999:9999"
 
   radio:
     container_name: radio
     build: ./dockermaze2-radio-game
     links:
     - head:head
-    networks:
-      - int
 
   heart:
     container_name: heart
     build: ./dockermaze2-heart-game
-    networks:
-      - ext
-
-networks:
-  ext:
-    driver: bridge
-  int:
-    driver: bridge
+    depends_on:
+    - head
