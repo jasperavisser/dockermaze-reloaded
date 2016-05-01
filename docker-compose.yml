@@ -24,6 +24,7 @@ services:
     build: ./dockermaze2-arms-game
     depends_on:
     - head
+    - stockfish
 
   weapon:
     container_name: weapon

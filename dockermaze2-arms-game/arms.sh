@@ -2,7 +2,7 @@
 
 # DOCKERBOT ARMS VERIFICATION MODULE
 #
-# This module verifies that the arms can solve 
+# This module verifies that the arms can solve
 # basic problems in coordination with the head
 # and the tools present in the robot.
 #
@@ -10,9 +10,13 @@
 # mate-in-one puzzles are successfully
 # solved with any of the winning moves.
 
-set -e
+cd "$(dirname "$(readlink -f "${0}")")"
+. error_handling.sh
+#set -x
+
 echo "Connecting to the head..."
 exec 7<>/dev/tcp/head/7777
+exec 9<>/dev/tcp/stockfish/9999
 echo "Retrieving puzzles..."
 while read puzzle <&7; do
   if [[ "$puzzle" == *"EOF"* ]]; then
