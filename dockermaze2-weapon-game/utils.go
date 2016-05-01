@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
-    "log"
+	"log"
 )
 
 type Challenge struct {
@@ -65,7 +65,7 @@ func getTargets() ([]string, error) {
 	client := http.Client{}
 	req, err := http.NewRequest(
 		"GET",
-		"http://"+endpoint+"/targets",
+		"http://" + endpoint + "/targets",
 		nil,
 	)
 	if err != nil {
@@ -108,7 +108,7 @@ func sendEvaluations(evaluations []Evaluation) (Message, error) {
 	}
 	req, err := http.NewRequest(
 		"POST",
-		"http://"+endpoint+"/evaluations",
+		"http://" + endpoint + "/evaluations",
 		bytes.NewReader(responseJSON),
 	)
 	if err != nil {
@@ -139,28 +139,28 @@ func sendEvaluations(evaluations []Evaluation) (Message, error) {
 
 // Print evaluation result.
 func printResult(result Message) {
-	log.Printf("\n"+
-		"+------------------------------+\n"+
-		"|  WEAPON VERIFICATION RESULT  |\n"+
-		"+---------+-----------+--------+\n"+
-		"|         | DESTROYED |     %2d |\n"+
-		"| ENEMIES +-----------+--------+\n"+
-		"|         | SPARED    |     %2d |\n"+
-		"+---------+-----------+--------+\n"+
-		"|         | DESTROYED |     %2d |\n"+
-		"| ALLIES  +-----------+--------+\n"+
-		"|         | SPARED    |     %2d |\n"+
-		"+---------+-----------+--------+\n"+
-		"| SCORE   |               %3d%% |\n"+
-		"+---------+--------------------+\n"+
-		"| SUCCESS |              %5s |\n"+
-		"+---------+--------------------+\n"+
-		"Message: %s\n",
+	log.Printf("\n" +
+	"+------------------------------+\n" +
+	"|  WEAPON VERIFICATION RESULT  |\n" +
+	"+---------+-----------+--------+\n" +
+	"|         | DESTROYED |     %2d |\n" +
+	"| ENEMIES +-----------+--------+\n" +
+	"|         | SPARED    |     %2d |\n" +
+	"+---------+-----------+--------+\n" +
+	"|         | DESTROYED |     %2d |\n" +
+	"| ALLIES  +-----------+--------+\n" +
+	"|         | SPARED    |     %2d |\n" +
+	"+---------+-----------+--------+\n" +
+	"| SCORE   |               %3d%% |\n" +
+	"+---------+--------------------+\n" +
+	"| SUCCESS |              %5s |\n" +
+	"+---------+--------------------+\n" +
+	"Message: %s\n",
 		result.EnemiesDestroyed,
 		result.EnemiesSpared,
 		result.AlliesDestroyed,
 		result.AlliesSpared,
-		int(result.Score*100),
+		int(result.Score * 100),
 		strings.ToUpper(
 			strconv.FormatBool(
 				result.Success,

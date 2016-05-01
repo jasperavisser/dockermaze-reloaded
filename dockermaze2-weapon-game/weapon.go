@@ -11,8 +11,9 @@ package main
 
 import (
 	"bytes"
-	// "encoding/json"
+	"encoding/json"
 	"image"
+	"fmt"
 	_ "image/gif"
 	_ "image/jpeg"
 	_ "image/png"
@@ -21,6 +22,7 @@ import (
 
 const (
 	endpoint = "head:80"
+	verbose = false
 )
 
 // Generate histogram from a target image.
@@ -36,20 +38,42 @@ func generateHistogram(data []byte) ([16][4]int, error) {
 	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
 		for x := bounds.Min.X; x < bounds.Max.X; x++ {
 			r, g, b, a := img.At(x, y).RGBA()
-			histogram[r>>12][0]++
-			histogram[g>>12][1]++
-			histogram[b>>12][2]++
-			histogram[a>>12][3]++
+			histogram[r >> 12][0]++
+			histogram[g >> 12][1]++
+			histogram[b >> 12][2]++
+			histogram[a >> 12][3]++
 		}
 	}
 	return histogram, nil
 }
 
+func foo(i int, color int, alpha int) int {
+	return i * color
+}
+
+func bar(r, g, b int) bool {
+	// r > (g+b) * 2.0 spares too many
+	// r > (g+b) * 1.8 spares too many
+	// r > (g+b) * 1.7 seems right ...
+	return float64(r) > float64(g + b) * 1.7
+}
+
 // Decide the action that will be taken.
-func decideAction(histogram [16][4]int) string {
-	// FIXME: Improve enemy recognition.
-	// https://en.wikipedia.org/wiki/Color_histogram
-	if true {
+func decideAction(histogram [16][4]int, target string) string {
+
+	var red int = 0
+	var green int = 0
+	var blue int = 0
+	for i, x := range histogram {
+		red += foo(i, x[0], x[3])
+		green += foo(i, x[1], x[3])
+		blue += foo(i, x[2], x[3])
+	}
+	if (verbose) {
+		fmt.Printf("FOO! red = %d, green = %d, blue = %d ON %s\n", red, green, blue, target)
+	}
+
+	if bar(red, green, blue) {
 		return "DESTROY"
 	} else {
 		return "SPARE"
@@ -84,23 +108,25 @@ func main() {
 		}
 
 		// Print target image histogram.
-		// fmt.Printf(
-		//     "%-14s %6s %6s %6s %6s\n",
-		//     "bin", "red", "green", "blue", "alpha",
-		// )
-		// for i, x := range histogram {
-		//     fmt.Printf(
-		// 	"0x%04x-0x%04x: %6d %6d %6d %6d\n",
-		// 	i<<12, (i+1)<<12-1, x[0], x[1], x[2], x[3],
-		//     )
-		// }
+		if verbose {
+			fmt.Printf(
+				"%-14s %6s %6s %6s %6s\n",
+				"bin", "red", "green", "blue", "alpha",
+			)
+			for i, x := range histogram {
+				fmt.Printf(
+					"0x%04x-0x%04x: %6d %6d %6d %6d\n",
+					i << 12, (i + 1) << 12 - 1, x[0], x[1], x[2], x[3],
+				)
+			}
+		}
 
-		evaluation := Evaluation{target, decideAction(histogram)}
+		evaluation := Evaluation{target, decideAction(histogram, target)}
 		evaluations = append(evaluations, evaluation)
 
 		// Print target evaluation.
-		// evaluationJSON, _ := json.Marshal(evaluation)
-		// log.Printf("\r%s", evaluationJSON)
+		evaluationJSON, _ := json.Marshal(evaluation)
+		log.Printf("\r%s", evaluationJSON)
 	}
 
 	log.Println("Sending evaluations back to the head...")
