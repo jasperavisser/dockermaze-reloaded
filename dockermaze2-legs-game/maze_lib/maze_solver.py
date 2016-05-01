@@ -1,54 +1,71 @@
 # MazeSolver enables DockerMaze LEGS robot module resolve ASCII Art mazes.
 # Unfortunately, LEGS robot module is damaged and is not possible assemble
 # it successfully.
-# Repair MazeSolver library in order to provide high performant DockerMaze
-# LEGS module that can be assaembled to your robot.
+# Repair MazeSolver library in order to provide high performance DockerMaze
+# LEGS module that can be assembled to your robot.
 
-init_coord = (1, 0)
+from maze_lib.astar import AStar
 
-# Directions: 1 - left, 2 - up, 3 - left, 4 - down
-directions = [4, 1, 2, 3, 4, 1, 2, 3, 4]
-direction_letters = {1: 'LEFT', 2: 'UP', 3: 'LEFT', 4: 'DOWN'}
+
+def format_step(start, end):
+    if end[0] > start[0] and end[1] == start[1]:
+        return "RIGHT"
+    elif end[0] < start[0] and end[1] == start[1]:
+        return "LEFT"
+    elif end[1] > start[1] and end[0] == start[0]:
+        return "DOWN"
+    elif end[1] < start[1] and end[0] == start[0]:
+        return "UP"
+    else:
+        raise Exception("hmm: ", start, end)
+
+
+def format_path(path):
+    result = []
+    p = path[0]
+    for q in path[1:]:
+        result.append(format_step(p, q))
+        p = q
+    return " ".join(result)
 
 
 class MazeSolver:
     def __init__(self, maze):
-        self.last_move_direction = 2
-        self.route = []
+        self.verbose = False
         self.maze = maze.split('\n')
-
-    def calculate_end_coord(self):
-        width = len(self.maze[0])
-        height = len(self.maze)
-        return (height-1-1, width-1)
-
-    def move(self, coord, direction):
-        if direction == 1:
-            return (coord[0], coord[1]+1)
-        elif direction == 2:
-            return (coord[0]-1, coord[1])
-        elif direction == 3:
-            return (coord[0], coord[1]-1)
-        elif direction == 4:
-            return (coord[0]+1, coord[1])
-
-    def is_valid_coord(self, coord):
-        if self.maze[coord[0]][coord[1]] == ' ':
-            return True
-        else:
-            return False
-
-    def make_move(self, coord):
-        for i in range(self.last_move_direction-1, self.last_move_direction+3):
-            new_coord = self.move(coord, directions[i])
-            if self.is_valid_coord(new_coord):
-                self.last_move_direction = directions[i]
-                self.route.append(direction_letters[directions[i]])
-                return new_coord
+        self.width = len(self.maze[0])
+        self.height = len(self.maze)
+        self.start = (0, 1)
+        self.end = (self.width - 1, self.height - 2)
 
     def solve_maze(self):
-        end_coord = self.calculate_end_coord()
-        coord = init_coord
-        while coord != end_coord:
-            coord = self.make_move(coord)
-        return " ".join(self.route)
+
+        walls = self.create_walls()
+        if self.verbose: self.print_maze()
+        if self.verbose: self.print_walls(walls)
+
+        solver = AStar()
+        solver.init_grid(self.width, self.height, walls, self.start, self.end)
+        path = solver.solve()
+
+        return format_path(path)
+
+    def create_walls(self):
+        walls = []
+        for y, row in enumerate(self.maze):
+            for x, cell in enumerate(row):
+                if cell != ' ': walls.append((x, y))
+        return walls
+
+    def print_maze(self):
+        for row in self.maze: print row
+
+    def print_walls(self, walls):
+        for y in range(0, self.height):
+            row = []
+            for x in range(0, self.width):
+                if (x, y) in walls:
+                    row.append(str(x % 10))
+                else:
+                    row.append(" ")
+            print "".join(row)

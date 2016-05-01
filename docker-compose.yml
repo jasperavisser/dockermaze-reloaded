@@ -1,5 +1,7 @@
 version: '2'
+
 services:
+
   head:
     container_name: head
     build: ./dockermaze2-head
@@ -10,13 +12,17 @@ services:
       - "80:80"
     networks:
       - int
+    env_file:
+    - token.env
+
   legs:
     container_name: legs
     build: ./dockermaze2-legs-game
-    depends_on:
+    links:
       - head
     networks:
       - int
+
   arms:
     container_name: arms
     build: ./dockermaze2-arms-game
@@ -24,6 +30,7 @@ services:
       - head
     networks:
       - int
+
   weapon:
     container_name: weapon
     build: ./dockermaze2-weapon-game
@@ -31,6 +38,7 @@ services:
       - head
     networks:
       - int
+
   stockfish:
     container_name: stockfish
     build: ./dockermaze2-stockfish
@@ -38,16 +46,21 @@ services:
       - "9999:9999"
     networks:
       - int
+
   radio:
     container_name: radio
     build: ./dockermaze2-radio-game
+    links:
+    - head:head
     networks:
       - int
+
   heart:
     container_name: heart
     build: ./dockermaze2-heart-game
     networks:
       - ext
+
 networks:
   ext:
     driver: bridge
