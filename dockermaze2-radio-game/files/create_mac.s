@@ -1,8 +1,3 @@
-	/*
-		TODO: repair the 'create_mac' function, it is not working as I'd expect. 
-		The problem is that I don't know how I lost the the C source code of the program. 
-		Function starts at line 76. I put some notes there...
-	*/
 	.file	"create_mac.c"
 	.intel_syntax noprefix
 	.globl	static_key
@@ -74,38 +69,57 @@ cipher_cmd:
 	.globl	create_mac
 	.type	create_mac, @function
 create_mac:
-/*
-	This function creates the Message Authentication Code. It takes as parameters a message and its length,
-	and the function should do something like this:
-
-							char create_mac(char* cmd, int cmd_len) {
-								char mac = 0;
-								int i;
-
-								for(i = 0; i < cmd_len; i++) {
-									mac = mac ^ cmd[i];
-								}
-
-								return mac;
-							}
-*/
+## BB#0:
+	push	ebp
+	mov	ebp, esp
+	push	ebx
+	sub	esp, 16
+	mov	eax, dword ptr [ebp + 12]
+	mov	ecx, dword ptr [ebp + 8]
+	mov	dword ptr [ebp - 8], ecx
+	mov	dword ptr [ebp - 12], eax
+	mov	byte ptr [ebp - 13], 0
+	mov	dword ptr [ebp - 20], 0
+LBB0_1:                                 ## =>This Inner Loop Header: Depth=1
+	mov	eax, dword ptr [ebp - 20]
+	cmp	eax, dword ptr [ebp - 12]
+	jge	LBB0_4
+## BB#2:                                ##   in Loop: Header=BB0_1 Depth=1
+	movsx	eax, byte ptr [ebp - 13]
+	mov	ecx, dword ptr [ebp - 20]
+	mov	edx, dword ptr [ebp - 8]
+	movsx	ecx, byte ptr [edx + ecx]
+	xor	eax, ecx
+	mov	bl, al
+	mov	byte ptr [ebp - 13], bl
+## BB#3:                                ##   in Loop: Header=BB0_1 Depth=1
+	mov	eax, dword ptr [ebp - 20]
+	add	eax, 1
+	mov	dword ptr [ebp - 20], eax
+	jmp	LBB0_1
+LBB0_4:
+	movsx	eax, byte ptr [ebp - 13]
+	add	esp, 16
+	pop	ebx
+	pop	ebp
+	ret
 .LFB1:
 	.cfi_startproc
 
-	
+
 	########### function prolog ###########
 	push	ebp
 	.cfi_def_cfa_offset 8
 	.cfi_offset 5, -8
 	mov	ebp, esp
 	.cfi_def_cfa_register 5
-	
+
 	########### reserve space for local vars ###########
 	sub	esp, 16
-	
+
 	########### char mac = 0; ###########
 	mov	BYTE PTR [ebp-1], 0
-	
+
 	########### int i = 0; ###########
 	mov	DWORD PTR [ebp-8], 0
 
@@ -114,7 +128,7 @@ create_mac:
 
 .L6:
 	########### instructions inside the 'for' loop ###########
-	
+
 	mov	edx, DWORD PTR [ebp-8]
 	mov	eax, DWORD PTR [ebp+8]
 	add	eax, edx
@@ -143,7 +157,7 @@ create_mac:
 	.cfi_restore 5
 	.cfi_def_cfa 4, 4
 	ret
-	
+
 	.cfi_endproc
 .LFE1:
 	.size	create_mac, .-create_mac
